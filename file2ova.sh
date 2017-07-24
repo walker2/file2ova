@@ -7,6 +7,7 @@ display_help() {
     echo "   -t, --time        	  :print execution time"
     echo "   -f, --file           :set path to the file"
     echo "   -l, --link           :set link to the file"
+    echo "   -lc, --location      :set path to directory on disk for adding new files"
     echo
     exit 1
 }
@@ -42,22 +43,32 @@ do
           shift
           ;;
       -l | --link)
-		  if [ $# -ne 0 ]; then
-		  	link_to_file="$2"
-		  else
-		  	echo -e "\033[31m Invalid argument. Enter working link to file"
+    		  if [ $# -ne 0 ]; then
+    		  	link_to_file="$2"
+    		  else
+    		  	echo -e "\033[31m Invalid argument. Enter working link to file"
             echo
             exit 1
           fi
           shift 2
           ;;
       -f | --file)
-		  if [ $# -ne 0 ]; then
-		  	path_to_file=$(readlink -m $2)
-		  else
-		  	echo -e "\033[31m Invalid argument. Enter working path to file"
-            echo
-            exit 1
+		      if [ $# -ne 0 ]; then
+		  	     path_to_file=$(readlink -m $2)
+		      else
+		  	     echo -e "\033[31m Invalid argument. Enter working path to file"
+             echo
+             exit 1
+          fi
+          shift 2
+          ;;
+      -lc | --location)
+          if [ $# -ne 0 ]; then
+             file_location="$2"
+          else
+             echo -e "\033[31m Invalid argument. Enter working path to directory"
+             echo
+             exit 1
           fi
           shift 2
           ;;
@@ -102,7 +113,7 @@ if [ ${SOURCE_FILE: -4} != ".ova" ] || [ ${TARGET_FILE: -4} != ".ova" ]; then
 	echo
 	exit 1
 fi
-
+echo $file_location
 echo $link_to_file
 echo $path_to_file
 
@@ -112,12 +123,12 @@ targetPath=$(dirname $TARGET_FILE)
 ovftool $SOURCE_FILE $sourcePath/tmp.vmx
 sudo mkdir /mnt/tmp
 sudo vmware-mount $sourcePath/tmp-disk1.vmdk 1 /mnt/tmp
-cd /mnt/tmp/
+cd /mnt/tmp$file_location
 if [ ! -z $link_to_file ]; then
 	sudo curl --remote-name $link_to_file
 fi
 if [ ! -z $path_to_file ]; then
-	sudo cp $path_to_file /mnt/tmp/$(basename $path_to_file)
+	sudo cp $path_to_file /mnt/tmp$file_location$(basename $path_to_file)
 fi
 echo File copied
 cd $sourcePath
@@ -130,7 +141,7 @@ find . -name 'tmp*' -delete
 echo Finished
 END=$(date +%s.%N)
 
-if [ "$time	" = true ]; then
+if [ "$time" = true ]; then
 	DIFF=$(echo "$END - $START" | bc)
 	echo $DIFF
 fi
