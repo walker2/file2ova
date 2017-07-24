@@ -25,7 +25,7 @@ display_help() {
     echo "./file2ova.sh -f <path>/<to>/<file> <path>/<to>/<source>.ova"
     echo
     echo "Example 2: " 
-    echo "We setting link to file on github, and setting source and a target"
+    echo "We setting link to the file on server, and setting source and a target"
     echo "./file2ova.sh -l https://<link>/<to>/<file> <path>/<to>/<source>.ova <path>/<to>/<target>.ova"
     echo
     echo "You can use two of this options to add 2 files from different sources"
