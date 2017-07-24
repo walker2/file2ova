@@ -1,0 +1,1 @@
+./file2ova.sh -t -f ./script.sh -l https://raw.githubusercontent.com/walker2/file2ova/master/addFile.sh ./ova/cent.ova ./ova/new_cent.ova
