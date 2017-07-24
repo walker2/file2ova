@@ -1,23 +1,56 @@
 #!/bin/bash
 display_help() {
+    echo "Warning: this script depends on ovftool and vmware-mount"
+    echo "It's highly recommended to use latest ovftool >= 4.2.0"
+    if ! hash ovftool 2>/dev/null; then
+    echo "Ovftool doesn't installed. Please install it with VMware Workstation Player 12 or download it here: https://my.vmware.com/web/vmware/details?productId=614&downloadGroup=OVFTOOL420"
+    fi
+    if ! hash vmware-mount 2>/dev/null; then
+    echo "VMware-mount doesn't installed. Please install it with VMware Workstation Player 12 or download it here: https://my.vmware.com/web/vmware/details?productId=46&downloadGroup=WKST-550-DISK-MOUNT-UTL"
+    fi
+    echo
     echo "Usage: $0 [option...] <-f|-l> <path> <source> [<target>]" >&2
     echo
-    echo "   -h, --help           :show this page"
-    echo "   -p, --partNum        :set partNum. Default: 1"
-    echo "   -t, --time        	  :print execution time"
-    echo "   -f, --file           :set path to the file"
-    echo "   -l, --link           :set link to the file"
-    echo "   -lc, --location      :set path to directory on disk for adding new files"
+    echo "   -h, --help               :show this page"
+    echo "   -p, --partNum   <numb>   :set partNum. Default: 1"
+    echo "   -t, --time               :print execution time"
+    echo "   -f, --file      <path>   :set path to the file, that should be added into ova"
+    echo "   -l, --link      <link>   :set link to the file, that should be added into ova"
+    echo "   -d, --directory <path>   :set path to directory on disk for adding new files"
+    echo 
+    echo "You can supply a link to file on server or file in local directory, or both."
     echo
+    echo "Example 1: " 
+    echo "We setting only file directory, and setting source, which means we overwriting it"
+    echo "./file2ova.sh -f <path>/<to>/<file> <path>/<to>/<source>.ova"
+    echo
+    echo "Example 2: " 
+    echo "We setting link to file on github, and setting source and a target"
+    echo "./file2ova.sh -l https://<link>/<to>/<file> <path>/<to>/<source>.ova <path>/<to>/<target>.ova"
+    echo
+    echo "You can use two of this options to add 2 files from different sources"
     exit 1
 }
 
+if ! hash ovftool 2>/dev/null; then
+    echo "Ovftool doesn't installed. Please install it with VMware Workstation Player 12 or download it here: https://my.vmware.com/web/vmware/details?productId=614&downloadGroup=OVFTOOL420"
+    exit 1
+fi
+
+if ! hash vmware-mount 2>/dev/null; then
+    echo "VMware-mount doesn't installed. Please install it with VMware Workstation Player 12 or download it here: https://my.vmware.com/web/vmware/details?productId=46&downloadGroup=WKST-550-DISK-MOUNT-UTL"
+    exit 1
+fi
+
 if [ -z "$1" ]; then
-    echo -e "\033[31m No argument supplied"
+    echo "No argument supplied, please refer to help"
+    echo
+    display_help
     exit 1
 fi
 
 START=$(date +%s.%N)
+
 
 time=false
 while :
@@ -28,7 +61,7 @@ do
           	if [ "$2" = "$2" ]; then
               	partNum="$2"
             else
-            	echo -e "\033[31m Invalid argument. After -p should be integer number"
+            	echo "Invalid argument. After -p should be integer number"
             	exit 1
         	fi
           fi
@@ -46,7 +79,7 @@ do
     		  if [ $# -ne 0 ]; then
     		  	link_to_file="$2"
     		  else
-    		  	echo -e "\033[31m Invalid argument. Enter working link to file"
+    		  	echo "Invalid argument. Enter working link to file"
             echo
             exit 1
           fi
@@ -56,17 +89,17 @@ do
 		      if [ $# -ne 0 ]; then
 		  	     path_to_file=$(readlink -m $2)
 		      else
-		  	     echo -e "\033[31m Invalid argument. Enter working path to file"
+		  	     echo "Invalid argument. Enter working path to file"
              echo
              exit 1
           fi
           shift 2
           ;;
-      -lc | --location)
+      -d | --directory)
           if [ $# -ne 0 ]; then
              file_location="$2"
           else
-             echo -e "\033[31m Invalid argument. Enter working path to directory"
+             echo "Invalid argument. Enter working path to directory"
              echo
              exit 1
           fi
@@ -77,7 +110,7 @@ do
           break
           ;;
       -*)
-          echo -e "\033[31m Error: Unknown option: $1" >&2
+          echo "Error: Unknown option: $1" >&2
           display_help
           exit 1 
           ;;
@@ -88,7 +121,7 @@ do
 done
 
 if [ ! -e $1 ]; then
-	echo -e "\033[31m Can't find the file $1" 
+	echo "Can't find the file $1" 
 	echo
 	exit 1
 else
@@ -109,7 +142,7 @@ echo $SOURCE_FILE
 echo $TARGET_FILE
 
 if [ ${SOURCE_FILE: -4} != ".ova" ] || [ ${TARGET_FILE: -4} != ".ova" ]; then
-	echo -e "\033[31m File extension should be .ova"
+	echo "File extension should be .ova"
 	echo
 	exit 1
 fi
